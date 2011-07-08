@@ -51,10 +51,8 @@ module RedisStore
             return false
           end
 
-          def destroy(env)
-            if sid = current_session_id(env)
-              @pool.del(sid)
-            end
+          def destroy_session(env, session_id, options)
+            @pool.del(session_id)
           rescue Errno::ECONNREFUSED
             false
           end
