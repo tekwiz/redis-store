@@ -43,8 +43,8 @@ module RedisStore
             [sid, session]
           end
 
-          def set_session(env, sid, session_data, options = {})
-            options = options.reverse_merge(env['rack.session.options'] || {})
+          def set_session(env, sid, session_data)
+            options = env['rack.session.options']
             @pool.set(sid, session_data, options)
             return(::Redis::Store.rails3? ? sid : true)
           rescue Errno::ECONNREFUSED
