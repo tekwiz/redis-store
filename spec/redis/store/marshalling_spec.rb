@@ -32,11 +32,6 @@ describe "Redis::Marshalling" do
     end
   end
 
-  it "should not marshal object on set if it's a Fixnum" do
-    @store.set("number", 1)
-    @store.get("number", :raw => true).should == "1"
-  end
-
   it "should not marshal object on set if raw option is true" do
     @store.set "rabbit", @white_rabbit, :raw => true
     @store.get("rabbit", :raw => true).should == %(#<OpenStruct color="white">)
@@ -84,5 +79,41 @@ describe "Redis::Marshalling" do
       rabbit2.should == "\004\bU:\017OpenStruct{\006:\ncolor\"\nwhite"
     end
   end
+
+  describe "binary safety" do
+    it "should marshal objects" do
+      utf8_key = [51339].pack("U*")
+      ascii_rabbit = OpenStruct.new(:name => [128].pack("C*"))
+
+      @store.set(utf8_key, ascii_rabbit)
+      @store.get(utf8_key).should === ascii_rabbit
+    end
+
+    it "should get and set raw values" do
+      utf8_key = [51339].pack("U*")
+      ascii_string = [128].pack("C*")
+
+      @store.set(utf8_key, ascii_string, :raw => true)
+      @store.get(utf8_key, :raw => true).bytes.to_a === ascii_string.bytes.to_a
+    end
+
+    it "should marshal objects on setnx" do
+      utf8_key = [51339].pack("U*")
+      ascii_rabbit = OpenStruct.new(:name => [128].pack("C*"))
+
+      @store.del(utf8_key)
+      @store.setnx(utf8_key, ascii_rabbit)
+      @store.get(utf8_key).should === ascii_rabbit
+    end
+
+    it "should get and set raw values on setnx" do
+      utf8_key = [51339].pack("U*")
+      ascii_string = [128].pack("C*")
+
+      @store.del(utf8_key)
+      @store.setnx(utf8_key, ascii_string, :raw => true)
+      @store.get(utf8_key, :raw => true).bytes.to_a === ascii_string.bytes.to_a
+    end
+  end if defined?(Encoding)
 end
 
