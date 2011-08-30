@@ -61,7 +61,7 @@ module Rack
 
       def destroy_session(env, session_id, options)
         options = { :renew => true }.update(options) unless options[:drop]
-        set_session(env, session_id, 0, options)
+        set_session(env, session_id, {}, options)
       end
 
       private
