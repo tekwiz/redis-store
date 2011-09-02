@@ -1,6 +1,6 @@
 class Redis
   class Store < self
-    module Namespace
+    class Namespace
       def set(key, val, options = nil)
         namespace(key) { |key| super(key, val, options) }
       end
